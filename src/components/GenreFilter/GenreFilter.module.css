@@ -1,0 +1,24 @@
+.genreFilter {
+  display: flex;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0.5rem;
+  top: 0;
+  overflow-x: auto;
+}
+
+button {
+  padding: 5px 10px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.selected {
+  background-color: #a1c181;
+  color: #111010;
+}

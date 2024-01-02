@@ -1,0 +1,85 @@
+.card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  min-width: 240px;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin: 1rem;
+}
+
+.poster {
+  width: 100%;
+  min-height: 600px;
+  object-fit: cover;
+}
+
+.content {
+  padding: 0.25rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-grow: 1;
+}
+
+.title,
+.genres,
+.description,
+.releaseDate,
+.vote {
+  margin-bottom: 0.5rem;
+}
+
+.genres {
+  color: #6a994e;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+
+.title {
+  font-size: 1.25rem;
+  color: #6a040f;
+}
+
+.releaseDate,
+.vote {
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.description {
+  color: #666;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .poster {
+    max-height: 240px;
+    object-fit: contain;
+  }
+
+  .card {
+    min-width: 200px;
+  }
+
+  .title,
+  .genres,
+  .releaseDate,
+  .vote {
+    font-size: 0.75rem;
+  }
+
+  .description {
+    -webkit-line-clamp: 2;
+    font-size: 0.75rem;
+    text-wrap: wrap;
+  }
+}
