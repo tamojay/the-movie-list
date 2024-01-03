@@ -19,6 +19,7 @@ button {
 }
 
 .selected {
-  background-color: #a1c181;
-  color: #111010;
+  background-color: #588157;
+  color: #fdf0d5;
+  font-weight: bold;
 }

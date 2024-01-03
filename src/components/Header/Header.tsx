@@ -8,6 +8,10 @@ const Header: React.FC = () => {
       <Link to="/" className={styles.logo}>
         <h2>TMDb</h2>
       </Link>
+      <input
+        placeholder="🔎 Search movies by name, year or genre"
+        className={styles.searchInput}
+      />
     </header>
   );
 };

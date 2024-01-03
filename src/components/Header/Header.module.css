@@ -3,7 +3,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 2rem;
-  background-color: #f2e8cf;
+  background-color: #219ebc;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
@@ -21,15 +21,30 @@
   font-weight: bold;
 }
 
+.searchInput {
+  border-radius: 0.45rem;
+  min-height: 2.5rem;
+  width: 20%;
+  min-width: 15rem;
+  border: none;
+}
+
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
     align-items: center;
-    padding: 2px 6px;
+    padding: 0 6px;
     width: 100%;
+    margin-bottom: 0;
   }
 
   .logo {
     margin: 4px auto;
+  }
+
+  .searchInput {
+    max-width: 90%;
+    margin-top: 0;
+    margin-bottom: 1rem;
   }
 }
