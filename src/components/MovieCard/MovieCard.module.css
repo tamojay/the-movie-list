@@ -1,8 +1,8 @@
 .card {
   background-color: #fff;
   border: 1px solid #ddd;
-  min-width: 240px;
-  height: 100%;
+  min-width: 22%;
+  height: auto;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -14,7 +14,7 @@
 
 .poster {
   width: 100%;
-  min-height: 600px;
+  height: auto;
   object-fit: cover;
 }
 
@@ -56,8 +56,14 @@
   overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 5;
   margin-bottom: 1rem;
+}
+
+.popularity {
+  margin-top: 0.5rem;
+  font-size: 0.6rem;
+  color: #666;
 }
 
 @media (max-width: 768px) {
@@ -67,7 +73,31 @@
   }
 
   .card {
-    min-width: 200px;
+    min-width: 300px;
+  }
+
+  .title,
+  .genres,
+  .releaseDate,
+  .vote {
+    font-size: 0.75rem;
+  }
+
+  .description {
+    -webkit-line-clamp: 3;
+    font-size: 0.75rem;
+    text-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .poster {
+    max-height: 150px;
+    object-fit: contain;
+  }
+
+  .card {
+    max-width: 200px;
   }
 
   .title,

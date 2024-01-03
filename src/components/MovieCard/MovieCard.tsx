@@ -11,6 +11,7 @@ interface MovieCardProps {
   vote_average?: number;
   vote_count?: number;
   genre_ids?: number[];
+  popularity?: number;
 }
 
 const MovieCard: React.FC<MovieCardProps> = ({
@@ -21,6 +22,7 @@ const MovieCard: React.FC<MovieCardProps> = ({
   vote_average,
   vote_count,
   release_date,
+  popularity,
 }) => {
   const baseImageUrl = "https://image.tmdb.org/t/p/";
   const posterSize = "w300";
@@ -43,6 +45,7 @@ const MovieCard: React.FC<MovieCardProps> = ({
             {vote_count !== undefined ? `(${vote_count})` : ""}
           </p>
         )}
+        <small className={styles.popularity}>{popularity}</small>
       </div>
     </div>
   );

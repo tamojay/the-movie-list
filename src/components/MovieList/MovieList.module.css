@@ -2,18 +2,42 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  width: 100vw;
+  margin: auto;
+  overflow-x: auto;
+  padding-top: 1rem;
 }
 
 .movieListContainer {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-gap: 20px;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 10px;
   padding: 20px;
   width: 100%;
-  box-sizing: border-box;
   justify-content: center;
+  align-content: center;
   margin-top: 0;
-  overflow-x: auto;
+}
+
+.emptyMessage {
+  align-self: center;
+  margin: 1rem auto;
+  font-size: 1.125rem;
+  color: #354f52;
+}
+
+.loadPreviousButton {
+  margin: 10px;
+  padding: 10px;
+  background: none;
+  color: #023047;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.loadPreviousButton:hover {
+  background-color: #fefae0;
 }
 
 /* Responsive adjustments */
@@ -21,16 +45,31 @@
   .movieListContainer {
     grid-template-columns: repeat(3, 1fr);
   }
+
+  .emptyMessage {
+    margin: 0.5rem auto;
+    font-size: 0.75rem;
+  }
 }
 
 @media (max-width: 768px) {
   .movieListContainer {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .emptyMessage {
+    margin: 0.5rem auto;
+    font-size: 0.75rem;
+  }
 }
 
 @media (max-width: 480px) {
   .movieListContainer {
     grid-template-columns: 1fr;
+  }
+
+  .emptyMessage {
+    margin: 0.5rem auto;
+    font-size: 0.65rem;
   }
 }

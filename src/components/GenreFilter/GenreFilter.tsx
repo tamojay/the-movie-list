@@ -1,3 +1,4 @@
+//
 import React, { memo } from "react";
 import styles from "./GenreFilter.module.css";
 import { Genre } from "../../types/index";
@@ -11,18 +12,29 @@ interface GenreFilterProps {
 const GenreFilter: React.FC<GenreFilterProps> = memo(
   ({ genres, selectedGenreIds, onGenreChange }) => {
     const toggleGenre = (genreId: number) => {
-      const newSelectedGenres = selectedGenreIds.includes(genreId)
-        ? selectedGenreIds.filter((id) => id !== genreId)
-        : [...selectedGenreIds, genreId];
+      let newSelectedGenres;
+      if (
+        selectedGenreIds.length === 0 ||
+        selectedGenreIds.length === genres.length
+      ) {
+        // If 'All' is currently selected, or no genres are selected, select only the clicked genre
+        newSelectedGenres = [genreId];
+      } else if (selectedGenreIds.includes(genreId)) {
+        // Deselect genre and if none left, select 'All'
+        newSelectedGenres = selectedGenreIds.filter((id) => id !== genreId);
+        if (newSelectedGenres.length === 0) {
+          newSelectedGenres = genres.map((genre) => genre.id);
+        }
+      } else {
+        // Add genre to the selection
+        newSelectedGenres = [...selectedGenreIds, genreId];
+      }
       onGenreChange(newSelectedGenres);
     };
 
     const selectAllGenres = () => {
-      if (selectedGenreIds.length === genres.length) {
-        onGenreChange([]);
-      } else {
-        onGenreChange(genres.map((genre) => genre.id));
-      }
+      // Select 'All' genres
+      onGenreChange(genres.map((genre) => genre.id));
     };
 
     return (

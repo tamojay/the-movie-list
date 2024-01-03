@@ -15,6 +15,7 @@ const MovieList: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [lastYearLoaded, setLastYearLoaded] = useState<number | null>(null);
   const loader = useRef<HTMLDivElement>(null);
+  const topLoader = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadGenres = async () => {
@@ -28,6 +29,24 @@ const MovieList: React.FC = () => {
 
     loadGenres();
   }, []);
+
+  const sortMoviesByYearAndPopularity = (movies: Movie[]): Movie[] => {
+    return movies.slice().sort((a, b) => {
+      const yearA = a.release_date ? new Date(a.release_date).getFullYear() : 0;
+      const yearB = b.release_date ? new Date(b.release_date).getFullYear() : 0;
+
+      // Sort by year first (descending)
+      if (yearA > yearB) return -1;
+      if (yearA < yearB) return 1;
+
+      // If years are equal, then sort by popularity (descending)
+      return (b.popularity ?? 0) - (a.popularity ?? 0);
+    });
+  };
+
+  // useEffect(() => {
+  //   loadMovies(2012);
+  // }, []);
 
   const loadMovies = useCallback(
     async (newYear: number) => {
@@ -46,7 +65,7 @@ const MovieList: React.FC = () => {
               ? [...prevAllMovies, ...newMovies]
               : [...newMovies, ...prevAllMovies];
 
-          return newAllMovies as Movie[];
+          return sortMoviesByYearAndPopularity(newAllMovies) as Movie[];
         });
 
         // Update the movies to be displayed, considering the selected genres
@@ -62,7 +81,9 @@ const MovieList: React.FC = () => {
                   )
                 );
 
-          return updatedFilteredMovies as Movie[];
+          return sortMoviesByYearAndPopularity(
+            updatedFilteredMovies
+          ) as Movie[];
         });
       } catch (error) {
         console.error("Error loading movies:", error);
@@ -75,15 +96,46 @@ const MovieList: React.FC = () => {
 
   const throttledLoadMovies = useThrottle(loadMovies, 500);
 
+  // useEffect(() => {
+  //   const observer = new IntersectionObserver(
+  //     (entities) => {
+  //       const target = entities[0];
+  //       if (target.isIntersecting && !isLoading) {
+  //         const newYear = target.intersectionRatio > 0 ? year + 1 : year - 1;
+  //         throttledLoadMovies(newYear);
+  //         setYear(newYear);
+  //       }
+  //     },
+  //     {
+  //       root: null,
+  //       threshold: 0,
+  //       rootMargin: "400px",
+  //     }
+  //   );
+
+  //   if (loader.current) observer.observe(loader.current);
+
+  //   return () => {
+  //     if (loader.current) observer.unobserve(loader.current);
+  //   };
+  // }, [throttledLoadMovies, year, isLoading]);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entities) => {
-        const target = entities[0];
-        if (target.isIntersecting && !isLoading) {
-          const newYear = target.intersectionRatio > 0 ? year + 1 : year - 1;
-          throttledLoadMovies(newYear);
-          setYear(newYear);
-        }
+        entities.forEach((entry) => {
+          if (entry.isIntersecting && !isLoading) {
+            if (entry.target === topLoader.current) {
+              const newYear = year - 1;
+              throttledLoadMovies(newYear);
+              setYear(newYear);
+            } else if (entry.target === loader.current) {
+              const newYear = year + 1;
+              throttledLoadMovies(newYear);
+              setYear(newYear);
+            }
+          }
+        });
       },
       {
         root: null,
@@ -92,10 +144,16 @@ const MovieList: React.FC = () => {
       }
     );
 
-    if (loader.current) observer.observe(loader.current);
+    if (topLoader.current) {
+      observer.observe(topLoader.current);
+    }
+
+    if (loader.current) {
+      observer.observe(loader.current);
+    }
 
     return () => {
-      if (loader.current) observer.unobserve(loader.current);
+      observer.disconnect();
     };
   }, [throttledLoadMovies, year, isLoading]);
 
@@ -123,20 +181,28 @@ const MovieList: React.FC = () => {
       />
 
       <div className={styles.movieListContainer}>
-        {movies.map((movie) => (
-          <MovieCard
-            key={movie.id}
-            title={movie.title}
-            poster_path={movie.poster_path}
-            genres={movie.genre_ids
-              .map((id) => genres.find((genre) => genre.id === id)?.name || "")
-              .join(", ")}
-            description={movie.overview}
-            release_date={movie.release_date}
-            vote_average={movie.vote_average}
-            vote_count={movie.vote_count}
-          />
-        ))}
+        <div ref={topLoader} />
+        {movies.length === 0 ? (
+          <h3 className={styles.emptyMessage}>No movies available.</h3>
+        ) : (
+          movies.map((movie) => (
+            <MovieCard
+              key={movie.id}
+              title={movie.title}
+              poster_path={movie.poster_path}
+              genres={movie.genre_ids
+                .map(
+                  (id) => genres.find((genre) => genre.id === id)?.name || ""
+                )
+                .join(", ")}
+              description={movie.overview}
+              release_date={movie.release_date}
+              vote_average={movie.vote_average}
+              vote_count={movie.vote_count}
+              popularity={movie.popularity}
+            />
+          ))
+        )}
         <div ref={loader} />
         {/* {isLoading && <p>Loading movies...</p>} */}
       </div>
