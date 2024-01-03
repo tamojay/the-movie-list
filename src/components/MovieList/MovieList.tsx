@@ -7,15 +7,14 @@ import { useThrottle } from "../../hooks/useThrottling";
 import styles from "./MovieList.module.css";
 
 const MovieList: React.FC = () => {
-  const [allMovies, setAllMovies] = useState<Movie[]>([]);
-  const [movies, setMovies] = useState<Movie[]>([]);
+  const [moviesByYear, setMoviesByYear] = useState<{ [key: number]: Movie[] }>(
+    {}
+  );
   const [genres, setGenres] = useState<Genre[]>([]);
   const [selectedGenreIds, setSelectedGenreIds] = useState<number[]>([]);
-  const [year, setYear] = useState<number>(2011);
+  const [currentYear, setCurrentYear] = useState<number>(2012);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [lastYearLoaded, setLastYearLoaded] = useState<number | null>(null);
   const loader = useRef<HTMLDivElement>(null);
-  const topLoader = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadGenres = async () => {
@@ -28,148 +27,67 @@ const MovieList: React.FC = () => {
     };
 
     loadGenres();
+    loadMovies(2012); // Initial load for 2012
   }, []);
 
-  const sortMoviesByYearAndPopularity = (movies: Movie[]): Movie[] => {
-    return movies.slice().sort((a, b) => {
-      const yearA = a.release_date ? new Date(a.release_date).getFullYear() : 0;
-      const yearB = b.release_date ? new Date(b.release_date).getFullYear() : 0;
-
-      // Sort by year first (descending)
-      if (yearA > yearB) return -1;
-      if (yearA < yearB) return 1;
-
-      // If years are equal, then sort by popularity (descending)
-      return (b.popularity ?? 0) - (a.popularity ?? 0);
-    });
+  const filterMoviesByGenre = (
+    movies: Movie[],
+    genreIds: number[]
+  ): Movie[] => {
+    if (genreIds.length === 0 || genreIds.includes(0)) {
+      return movies;
+    }
+    return movies.filter((movie) =>
+      movie.genre_ids.some((genreId) => genreIds.includes(genreId))
+    );
   };
 
-  // useEffect(() => {
-  //   loadMovies(2012);
-  // }, []);
-
   const loadMovies = useCallback(
-    async (newYear: number) => {
-      if (lastYearLoaded === newYear) {
-        return;
-      }
+    async (year: number) => {
       setIsLoading(true);
-      setLastYearLoaded(newYear);
-
       try {
-        const newMovies = await fetchMoviesByYear(newYear);
-        setAllMovies((prevAllMovies) => {
-          // Update allMovies with the newly loaded movies
-          const newAllMovies =
-            newYear > year
-              ? [...prevAllMovies, ...newMovies]
-              : [...newMovies, ...prevAllMovies];
-
-          return sortMoviesByYearAndPopularity(newAllMovies) as Movie[];
+        const newMovies = await fetchMoviesByYear(year);
+        setMoviesByYear((prevMoviesByYear) => {
+          const filteredMovies = filterMoviesByGenre(
+            newMovies,
+            selectedGenreIds
+          );
+          const sortedMovies = filteredMovies.sort(
+            (a, b) => (b.popularity ?? 0) - (a.popularity ?? 0)
+          );
+          return { ...prevMoviesByYear, [year]: sortedMovies };
         });
-
-        // Update the movies to be displayed, considering the selected genres
-        setMovies((prevMovies) => {
-          const updatedFilteredMovies =
-            selectedGenreIds.length === 0 || selectedGenreIds.includes(0)
-              ? newYear > year
-                ? [...prevMovies, ...newMovies]
-                : [...newMovies, ...prevMovies]
-              : newMovies.filter((movie) =>
-                  movie.genre_ids.some((genreId: number) =>
-                    selectedGenreIds.includes(genreId)
-                  )
-                );
-
-          return sortMoviesByYearAndPopularity(
-            updatedFilteredMovies
-          ) as Movie[];
-        });
+        setCurrentYear(year);
       } catch (error) {
         console.error("Error loading movies:", error);
       } finally {
         setIsLoading(false);
       }
     },
-    [year, lastYearLoaded, selectedGenreIds]
+    [selectedGenreIds]
   );
 
   const throttledLoadMovies = useThrottle(loadMovies, 500);
 
-  // useEffect(() => {
-  //   const observer = new IntersectionObserver(
-  //     (entities) => {
-  //       const target = entities[0];
-  //       if (target.isIntersecting && !isLoading) {
-  //         const newYear = target.intersectionRatio > 0 ? year + 1 : year - 1;
-  //         throttledLoadMovies(newYear);
-  //         setYear(newYear);
-  //       }
-  //     },
-  //     {
-  //       root: null,
-  //       threshold: 0,
-  //       rootMargin: "400px",
-  //     }
-  //   );
-
-  //   if (loader.current) observer.observe(loader.current);
-
-  //   return () => {
-  //     if (loader.current) observer.unobserve(loader.current);
-  //   };
-  // }, [throttledLoadMovies, year, isLoading]);
-
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entities) => {
-        entities.forEach((entry) => {
-          if (entry.isIntersecting && !isLoading) {
-            if (entry.target === topLoader.current) {
-              const newYear = year - 1;
-              throttledLoadMovies(newYear);
-              setYear(newYear);
-            } else if (entry.target === loader.current) {
-              const newYear = year + 1;
-              throttledLoadMovies(newYear);
-              setYear(newYear);
-            }
-          }
-        });
+        if (entities.some((entry) => entry.isIntersecting) && !isLoading) {
+          throttledLoadMovies(currentYear + 1);
+        }
       },
-      {
-        root: null,
-        threshold: 0,
-        rootMargin: "400px",
-      }
+      { root: null, threshold: 0.1 }
     );
 
-    if (topLoader.current) {
-      observer.observe(topLoader.current);
-    }
+    if (loader.current) observer.observe(loader.current);
 
-    if (loader.current) {
-      observer.observe(loader.current);
-    }
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [throttledLoadMovies, year, isLoading]);
-
-  useEffect(() => {
-    if (selectedGenreIds.length === 0) {
-      setMovies(allMovies);
-    } else {
-      const filteredMovies = allMovies.filter((movie) =>
-        movie.genre_ids.some((genreId) => selectedGenreIds.includes(genreId))
-      );
-      setMovies(filteredMovies);
-    }
-  }, [allMovies, selectedGenreIds]);
+    return () => observer.disconnect();
+  }, [throttledLoadMovies, currentYear, isLoading]);
 
   const onGenreChange = (selectedGenres: number[]) => {
     setSelectedGenreIds(selectedGenres);
+    setMoviesByYear({}); // Reset the movies
+    loadMovies(2012); // Reload with the new genre filter
   };
 
   return (
@@ -179,32 +97,36 @@ const MovieList: React.FC = () => {
         onGenreChange={onGenreChange}
         selectedGenreIds={selectedGenreIds}
       />
-
+      <button
+        className={styles.topLoader}
+        onClick={() => loadMovies(currentYear - 1)}
+      >
+        Load older movies
+      </button>
       <div className={styles.movieListContainer}>
-        <div ref={topLoader} />
-        {movies.length === 0 ? (
-          <h3 className={styles.emptyMessage}>No movies available.</h3>
-        ) : (
-          movies.map((movie) => (
-            <MovieCard
-              key={movie.id}
-              title={movie.title}
-              poster_path={movie.poster_path}
-              genres={movie.genre_ids
-                .map(
-                  (id) => genres.find((genre) => genre.id === id)?.name || ""
-                )
-                .join(", ")}
-              description={movie.overview}
-              release_date={movie.release_date}
-              vote_average={movie.vote_average}
-              vote_count={movie.vote_count}
-              popularity={movie.popularity}
-            />
-          ))
-        )}
-        <div ref={loader} />
-        {/* {isLoading && <p>Loading movies...</p>} */}
+        {Object.entries(moviesByYear).map(([year, movies]) => (
+          <React.Fragment key={year}>
+            {movies.map((movie) => (
+              <MovieCard
+                key={movie.id}
+                title={movie.title}
+                poster_path={movie.poster_path}
+                genres={movie.genre_ids
+                  .map(
+                    (id) => genres.find((genre) => genre.id === id)?.name || ""
+                  )
+                  .join(", ")}
+                description={movie.overview}
+                release_date={movie.release_date}
+                vote_average={movie.vote_average}
+                vote_count={movie.vote_count}
+                popularity={movie.popularity}
+              />
+            ))}
+          </React.Fragment>
+        ))}
+        <div ref={loader} className={styles.loader} />
+        {isLoading && <p>Loading movies...</p>}
       </div>
     </div>
   );

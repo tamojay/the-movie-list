@@ -26,18 +26,8 @@
   color: #354f52;
 }
 
-.loadPreviousButton {
-  margin: 10px;
-  padding: 10px;
+.topLoader {
   background: none;
-  color: #023047;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.loadPreviousButton:hover {
-  background-color: #fefae0;
 }
 
 /* Responsive adjustments */
