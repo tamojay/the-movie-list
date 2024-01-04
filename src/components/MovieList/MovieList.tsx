@@ -4,6 +4,7 @@ import { Movie, Genre } from "../../types/index";
 import MovieCard from "../MovieCard/MovieCard";
 import GenreFilter from "../GenreFilter/GenreFilter";
 import { useThrottle } from "../../hooks/useThrottling";
+import { useDebounce } from "../../hooks/useDebounce";
 import styles from "./MovieList.module.css";
 
 interface MovieListProps {
@@ -97,7 +98,7 @@ const MovieList: React.FC<MovieListProps> = ({ searchString }) => {
     loadMovies(2012);
   };
 
-  useEffect(() => {
+  const handleSearch = (searchString: string) => {
     if (searchString) {
       const lowerCaseSearchString = searchString.toLowerCase();
       const allMoviesArray = Object.values(moviesByYear).flat();
@@ -107,11 +108,17 @@ const MovieList: React.FC<MovieListProps> = ({ searchString }) => {
           movie.overview.toLowerCase().includes(lowerCaseSearchString) ||
           movie.release_date?.startsWith(searchString)
       );
-
       setFilteredMovies(filtered);
     } else {
       setFilteredMovies(Object.values(moviesByYear).flat());
     }
+  };
+
+  // Debouncing
+  const debouncedHandleSearch = useDebounce(handleSearch, 300);
+
+  useEffect(() => {
+    debouncedHandleSearch(searchString);
   }, [searchString, moviesByYear]);
 
   return (
