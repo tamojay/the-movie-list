@@ -19,6 +19,16 @@
   margin-top: 0;
 }
 
+.yearWrapper {
+  display: block;
+  font-size: 1rem;
+  margin: 0 auto;
+  margin-top: 1rem;
+  padding: 0 0.5rem;
+  border: 0.025rem solid black;
+  border-radius: 0.45rem;
+}
+
 .emptyMessage {
   align-self: center;
   margin: 1rem auto;

@@ -6,13 +6,19 @@ import GenreFilter from "../GenreFilter/GenreFilter";
 import { useThrottle } from "../../hooks/useThrottling";
 import styles from "./MovieList.module.css";
 
-const MovieList: React.FC = () => {
+interface MovieListProps {
+  searchString: string;
+}
+
+const MovieList: React.FC<MovieListProps> = ({ searchString }) => {
+  const [filteredMovies, setFilteredMovies] = useState<Movie[]>([]);
   const [moviesByYear, setMoviesByYear] = useState<{ [key: number]: Movie[] }>(
     {}
   );
   const [genres, setGenres] = useState<Genre[]>([]);
   const [selectedGenreIds, setSelectedGenreIds] = useState<number[]>([]);
   const [currentYear, setCurrentYear] = useState<number>(2012);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const loader = useRef<HTMLDivElement>(null);
 
@@ -43,10 +49,10 @@ const MovieList: React.FC = () => {
   };
 
   const loadMovies = useCallback(
-    async (year: number) => {
+    async (year: number, page: number = 1) => {
       setIsLoading(true);
       try {
-        const newMovies = await fetchMoviesByYear(year);
+        const newMovies = await fetchMoviesByYear(year, page);
         setMoviesByYear((prevMoviesByYear) => {
           const filteredMovies = filterMoviesByGenre(
             newMovies,
@@ -58,13 +64,14 @@ const MovieList: React.FC = () => {
           return { ...prevMoviesByYear, [year]: sortedMovies };
         });
         setCurrentYear(year);
+        setCurrentPage((prev) => prev + 1);
       } catch (error) {
         console.error("Error loading movies:", error);
       } finally {
         setIsLoading(false);
       }
     },
-    [selectedGenreIds]
+    [selectedGenreIds, currentYear, currentPage]
   );
 
   const throttledLoadMovies = useThrottle(loadMovies, 500);
@@ -86,9 +93,26 @@ const MovieList: React.FC = () => {
 
   const onGenreChange = (selectedGenres: number[]) => {
     setSelectedGenreIds(selectedGenres);
-    setMoviesByYear({}); // Reset the movies
-    loadMovies(2012); // Reload with the new genre filter
+    setMoviesByYear({});
+    loadMovies(2012);
   };
+
+  useEffect(() => {
+    if (searchString) {
+      const lowerCaseSearchString = searchString.toLowerCase();
+      const allMoviesArray = Object.values(moviesByYear).flat();
+      const filtered = allMoviesArray.filter(
+        (movie) =>
+          movie.title.toLowerCase().includes(lowerCaseSearchString) ||
+          movie.overview.toLowerCase().includes(lowerCaseSearchString) ||
+          movie.release_date?.startsWith(searchString)
+      );
+
+      setFilteredMovies(filtered);
+    } else {
+      setFilteredMovies(Object.values(moviesByYear).flat());
+    }
+  }, [searchString, moviesByYear]);
 
   return (
     <div className={styles.movieLayout}>
@@ -97,16 +121,18 @@ const MovieList: React.FC = () => {
         onGenreChange={onGenreChange}
         selectedGenreIds={selectedGenreIds}
       />
+
       <button
         className={styles.topLoader}
         onClick={() => loadMovies(currentYear - 1)}
       >
         Load older movies
       </button>
+
       <div className={styles.movieListContainer}>
         {Object.entries(moviesByYear).map(([year, movies]) => (
           <React.Fragment key={year}>
-            {movies.map((movie) => (
+            {filteredMovies.map((movie) => (
               <MovieCard
                 key={movie.id}
                 title={movie.title}

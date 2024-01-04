@@ -35,6 +35,30 @@ export const fetchMoviesByYear = async (
   }
 };
 
+// export const fetchAllMovies = async (
+//   page: number = 1,
+//   genres: string = ""
+// ): Promise<Movie[]> => {
+//   try {
+//     const response = await axios.get<ApiResponse>(
+//       `${TMDB_BASE_URL}/discover/movie`,
+//       {
+//         params: {
+//           api_key: API_KEY,
+//           sort_by: "popularity.desc",
+//           page,
+//           vote_count_gte: 100,
+//           with_genres: genres,
+//         },
+//       }
+//     );
+//     return response.data.results;
+//   } catch (error) {
+//     console.error("Error fetching movies:", error);
+//     throw error;
+//   }
+// };
+
 export const fetchGenres = async (): Promise<Genre[]> => {
   try {
     const response = await axios.get(`${GENRE_BASE_URL}/genre/movie/list`, {

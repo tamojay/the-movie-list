@@ -2,14 +2,25 @@ import React from "react";
 import { Link } from "react-router-dom";
 import styles from "./Header.module.css";
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  searchString: string;
+  setSearchString: (query: string) => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ searchString, setSearchString }) => {
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchString(event.target.value);
+  };
+
   return (
     <header className={styles.header}>
       <Link to="/" className={styles.logo}>
         <h2>TMDb</h2>
       </Link>
       <input
-        placeholder="🔎 Search movies by name, year or genre"
+        value={searchString}
+        onChange={handleSearchChange}
+        placeholder="🔎 Search movies"
         className={styles.searchInput}
       />
     </header>
