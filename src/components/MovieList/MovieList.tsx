@@ -137,7 +137,7 @@ const MovieList: React.FC<MovieListProps> = ({ searchString }) => {
       </button>
 
       <div className={styles.movieListContainer}>
-        {Object.entries(moviesByYear).map(([year, movies]) => (
+        {Object.entries(moviesByYear).map(([year]) => (
           <React.Fragment key={year}>
             {filteredMovies.map((movie) => (
               <MovieCard
